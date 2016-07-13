@@ -20,8 +20,10 @@
  *       // Controls the length of the individual dashes and the amount of
  *       // space between them.
  *       // If this is a number, the dashes and spaces will have that length.
- *       // If this is an array, it is read as [ dashLength, spaceLength ]
- *       dashLength: <number> or <array[2]>
+ *       // If this is an array, it is read as [ dashLength, spaceLength, dashLengh, spaceLength, ... ], 
+ *       // looping over the array. This is used to generate different patterns (as of calling ctx.setLineDash)
+ *       dashLength: <number> or <array[n]>
+ *       
  *     }
  *   }
  * }
@@ -44,21 +46,21 @@
             prevy = null,
             dashRemainder = 0,
             dashOn = true,
-            dashOnLength,
-            dashOffLength;
+            dashPattern;
 
         if (series.dashes.dashLength[0]) {
-          dashOnLength = series.dashes.dashLength[0];
-          if (series.dashes.dashLength[1]) {
-            dashOffLength = series.dashes.dashLength[1];
+          if (series.dashes.dashLength.length >= 2) {
+            dashPattern = series.dashes.dashLength;
           } else {
-            dashOffLength = dashOnLength;
+            dashPattern = [series.dashes.dashLength[0], series.dashes.dashLength[0]];
           }
         } else {
-          dashOffLength = dashOnLength = series.dashes.dashLength;
+          dashPattern = [series.dashes.dashLength, series.dashes.dashLength];
         }
 
         ctx.beginPath();
+
+        var dashIndex = 0;
 
         for (var i = ps; i < points.length; i += ps) {
 
@@ -147,12 +149,9 @@
             }
           }
           //-end lineSegmentOffset
-
           do {
 
-            dashOffset = lineSegmentOffset(
-                dashRemainder > 0 ? dashRemainder :
-                  dashOn ? dashOnLength : dashOffLength);
+            dashOffset = lineSegmentOffset(dashRemainder > 0 ? dashRemainder : dashPattern[dashIndex]);
 
             if (dashOffset.deltaX != 0 || dashOffset.deltaY != 0) {
               if (dashOn) {
@@ -164,6 +163,8 @@
 
             dashOn = !dashOn;
             dashRemainder = dashOffset.remainder;
+            if (!dashRemainder)
+              dashIndex = (dashIndex + 1) % dashPattern.length;
             ax1 += dashOffset.deltaX;
             ay1 += dashOffset.deltaY;
 
