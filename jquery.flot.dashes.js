@@ -50,6 +50,8 @@
               dashOn = true,
               dashOnLength,
               dashOffLength;
+
+          if (!series.dashes.show) return;
           
           if (series.dashes.dashLength[0]) {
             dashOnLength = series.dashes.dashLength[0];
