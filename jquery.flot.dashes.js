@@ -44,8 +44,6 @@
             ps = series.datapoints.pointsize,
             prevx = null,
             prevy = null,
-            dashRemainder = 0,
-            dashOn = true,
             dashPattern;
 
         if (series.dashes.dashLength[0]) {
@@ -58,12 +56,10 @@
           dashPattern = [series.dashes.dashLength, series.dashes.dashLength];
         }
 
+        ctx.setLineDash(dashPattern);
         ctx.beginPath();
 
-        var dashIndex = 0;
-
         for (var i = ps; i < points.length; i += ps) {
-
           var x1 = points[i - ps],
               y1 = points[i - ps + 1],
               x2 = points[i],
@@ -120,56 +116,10 @@
             ctx.moveTo(axisx.p2c(x1) + xoffset, axisy.p2c(y1) + yoffset);
           }
 
-          var ax1 = axisx.p2c(x1) + xoffset,
-              ay1 = axisy.p2c(y1) + yoffset,
-              ax2 = axisx.p2c(x2) + xoffset,
-              ay2 = axisy.p2c(y2) + yoffset,
-              dashOffset;
+          var ax2 = axisx.p2c(x2) + xoffset,
+              ay2 = axisy.p2c(y2) + yoffset;
 
-          function lineSegmentOffset(segmentLength) {
-
-            var c = Math.sqrt(Math.pow(ax2 - ax1, 2) + Math.pow(ay2 - ay1, 2));
-
-            if (c <= segmentLength) {
-              return {
-                deltaX: ax2 - ax1,
-                deltaY: ay2 - ay1,
-                distance: c,
-                remainder: segmentLength - c
-              }
-            } else {
-              var xsign = ax2 > ax1 ? 1 : -1,
-                  ysign = ay2 > ay1 ? 1 : -1;
-              return {
-                deltaX: xsign * Math.sqrt(Math.pow(segmentLength, 2) / (1 + Math.pow((ay2 - ay1)/(ax2 - ax1), 2))),
-                deltaY: ysign * Math.sqrt(Math.pow(segmentLength, 2) - Math.pow(segmentLength, 2) / (1 + Math.pow((ay2 - ay1)/(ax2 - ax1), 2))),
-                distance: segmentLength,
-                remainder: 0
-              };
-            }
-          }
-          //-end lineSegmentOffset
-          do {
-
-            dashOffset = lineSegmentOffset(dashRemainder > 0 ? dashRemainder : dashPattern[dashIndex]);
-
-            if (dashOffset.deltaX != 0 || dashOffset.deltaY != 0) {
-              if (dashOn) {
-                ctx.lineTo(ax1 + dashOffset.deltaX, ay1 + dashOffset.deltaY);
-              } else {
-                ctx.moveTo(ax1 + dashOffset.deltaX, ay1 + dashOffset.deltaY);
-              }
-            }
-
-            dashRemainder = dashOffset.remainder;
-            if (!dashRemainder) {
-              dashIndex = (dashIndex + 1) % dashPattern.length;
-              dashOn = !dashOn;
-            }
-            ax1 += dashOffset.deltaX;
-            ay1 += dashOffset.deltaY;
-
-          } while (dashOffset.distance > 0);
+          ctx.lineTo(ax2, ay2);
 
           prevx = x2;
           prevy = y2;
