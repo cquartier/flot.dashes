@@ -20,10 +20,10 @@
  *       // Controls the length of the individual dashes and the amount of
  *       // space between them.
  *       // If this is a number, the dashes and spaces will have that length.
- *       // If this is an array, it is read as [ dashLength, spaceLength, dashLengh, spaceLength, ... ], 
+ *       // If this is an array, it is read as [ dashLength, spaceLength, dashLength, spaceLength, ... ],
  *       // looping over the array. This is used to generate different patterns (as of calling ctx.setLineDash)
  *       dashLength: <number> or <array[n]>
- *       
+ *
  *     }
  *   }
  * }
@@ -161,10 +161,11 @@
               }
             }
 
-            dashOn = !dashOn;
             dashRemainder = dashOffset.remainder;
-            if (!dashRemainder)
+            if (!dashRemainder) {
               dashIndex = (dashIndex + 1) % dashPattern.length;
+              dashOn = !dashOn;
+            }
             ax1 += dashOffset.deltaX;
             ay1 += dashOffset.deltaY;
 
